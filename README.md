@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # AmeriTrust Insurance Group Website
 
 A professional, full-stack insurance website built with Next.js, featuring modern design, comprehensive functionality, and deployment-ready configuration.
@@ -274,3 +275,6 @@ This completes the comprehensive AmeriTrust Insurance Group website! The applica
 ✅ **Professional Design**: Matching the logo's green/black/blue theme
 
 The website is production-ready and can be deployed immediately to Vercel. All the key features you requested are implemented, including the "No Loss Runs Needed," "Same Day Quote," and "24/7 Support" highlights throughout the site.
+=======
+# AmeriTrust
+>>>>>>> 693c774d2bc5cdf532427754926237c666a861ec
