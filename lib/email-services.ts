@@ -1,6 +1,16 @@
 import { Resend } from "resend"
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+// Initialize Resend with proper error handling
+const getResendClient = () => {
+  const apiKey = process.env.RESEND_API_KEY
+  if (!apiKey) {
+    console.warn("⚠️ RESEND_API_KEY not found. Email functionality will be disabled.")
+    return null
+  }
+  return new Resend(apiKey)
+}
+
+const resend = getResendClient()
 
 interface QuoteData {
   id: string
@@ -138,6 +148,12 @@ export async function sendAdminNotification(quoteData: QuoteData): Promise<Email
 }
 
 export async function sendTestEmail(to: string, subject: string, content: string): Promise<boolean> {
+  // Check if Resend is available
+  if (!resend) {
+    console.error("❌ Email service not configured - RESEND_API_KEY missing")
+    return false
+  }
+
   try {
     console.log(`📧 Sending test email to: ${to}`)
 
@@ -158,5 +174,91 @@ export async function sendTestEmail(to: string, subject: string, content: string
   } catch (error: any) {
     console.error("💥 Test email error:", error)
     return false
+  }
+}
+
+// Add a new email service API with comprehensive error handling
+export const emailServiceAPI = {
+  async sendEmail(options: { to: string; subject: string; text: string }) {
+    if (!resend) {
+      console.warn("⚠️ Email service not available - RESEND_API_KEY not configured")
+      return false
+    }
+
+    try {
+      const response = await resend.emails.send({
+        from: "AmeriTrust Insurance <noreply@resend.dev>",
+        to: [options.to],
+        subject: options.subject,
+        html: `<div style="font-family: Arial, sans-serif; line-height: 1.6;">${options.text.replace(/\n/g, '<br>')}</div>`,
+      })
+
+      if (response.error) {
+        console.error("❌ Email send error:", response.error)
+        return false
+      }
+
+      console.log("✅ Email sent successfully:", response.data?.id)
+      return true
+    } catch (error: any) {
+      console.error("💥 Email service error:", error)
+      return false
+    }
+  },
+
+  async sendQuoteReply(to: string, customerName: string, serviceType: string, message: string) {
+    const subject = `Re: Your ${serviceType} Insurance Quote - AmeriTrust Insurance`
+    const content = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background: #16a34a; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;">
+          <h1>AmeriTrust Insurance Group</h1>
+        </div>
+        <div style="background: #f9f9f9; padding: 20px; border-radius: 0 0 8px 8px;">
+          <p>Dear ${customerName},</p>
+          <p>Thank you for your interest in our ${serviceType} insurance services.</p>
+          <div style="background: white; padding: 15px; border-radius: 6px; margin: 20px 0;">
+            ${message.replace(/\n/g, '<br>')}
+          </div>
+          <p>If you have any questions, please don't hesitate to contact us.</p>
+          <p>Best regards,<br>AmeriTrust Insurance Team</p>
+          <hr style="margin: 20px 0;">
+          <p style="font-size: 12px; color: #666;">
+            AmeriTrust Insurance Group<br>
+            📞 (678) 217-5044 | 📧 ameritrustins@gmail.com<br>
+            📍 2198 Austell Rd SW #104, Marietta, GA 30008
+          </p>
+        </div>
+      </div>
+    `
+
+    return this.sendEmail({ to, subject, text: content })
+  },
+
+  async sendContactReply(to: string, customerName: string, originalSubject: string, message: string) {
+    const subject = `Re: ${originalSubject} - AmeriTrust Insurance`
+    const content = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background: #16a34a; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;">
+          <h1>AmeriTrust Insurance Group</h1>
+        </div>
+        <div style="background: #f9f9f9; padding: 20px; border-radius: 0 0 8px 8px;">
+          <p>Dear ${customerName},</p>
+          <p>Thank you for contacting AmeriTrust Insurance Group.</p>
+          <div style="background: white; padding: 15px; border-radius: 6px; margin: 20px 0;">
+            ${message.replace(/\n/g, '<br>')}
+          </div>
+          <p>If you have any additional questions, please don't hesitate to reach out.</p>
+          <p>Best regards,<br>AmeriTrust Insurance Team</p>
+          <hr style="margin: 20px 0;">
+          <p style="font-size: 12px; color: #666;">
+            AmeriTrust Insurance Group<br>
+            📞 (678) 217-5044 | 📧 ameritrustins@gmail.com<br>
+            📍 2198 Austell Rd SW #104, Marietta, GA 30008
+          </p>
+        </div>
+      </div>
+    `
+
+    return this.sendEmail({ to, subject, text: content })
   }
 }

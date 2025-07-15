@@ -2,7 +2,29 @@
 
 This guide will help you set up email delivery for the AmeriTrust Insurance admin system.
 
-## Gmail Setup (Recommended)
+## Resend Setup (Primary Email Service)
+
+### Step 1: Create Resend Account
+1. Go to [Resend.com](https://resend.com) and sign up for an account
+2. Verify your email address
+3. Complete the onboarding process
+
+### Step 2: Generate API Key
+1. In your Resend dashboard, go to "API Keys"
+2. Click "Create API Key"
+3. Give it a name like "AmeriTrust Insurance"
+4. Copy the generated API key (starts with "re_")
+
+### Step 3: Configure Environment Variable
+Add this to your `.env.local` file:
+
+```env
+RESEND_API_KEY=re_your_actual_api_key_here
+```
+
+**IMPORTANT:** The `RESEND_API_KEY` is required for the application to build and run properly. Without it, the build process will fail.
+
+## Alternative: Gmail Setup (Legacy)
 
 ### Step 1: Enable 2-Factor Authentication
 1. Go to your Google Account settings
@@ -82,6 +104,7 @@ SMTP_PASS=your-password
 
 ### Environment Variables Checklist
 
+- [ ] RESEND_API_KEY is set (required for build)
 - [ ] SMTP_HOST is correct for your provider
 - [ ] SMTP_PORT is correct (usually 587 or 465)
 - [ ] SMTP_USER is your full email address
@@ -101,7 +124,8 @@ For production deployment on Vercel:
 
 1. Go to your Vercel project dashboard
 2. Navigate to Settings → Environment Variables
-3. Add all SMTP_* variables with their production values
+3. Add RESEND_API_KEY with your production API key
+4. Add any additional SMTP_* variables if using fallback email
 4. Redeploy your application
 
 The email system will automatically use these environment variables in production.
